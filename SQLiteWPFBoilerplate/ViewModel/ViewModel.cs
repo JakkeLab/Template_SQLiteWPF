@@ -10,7 +10,7 @@ namespace SQLiteWPFBoilerplate.ViewModel
 {
     public static class ViewModel
     {
-		private static DBModel _dbModel;
+		private static DBModel _dbModel = new DBModel();
 
 		public static DBModel DBModel
 		{

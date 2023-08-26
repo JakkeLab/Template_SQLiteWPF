@@ -3,6 +3,7 @@ using SQLiteWPFBoilerplate.SQLiteControls;
 using SQLiteWPFBoilerplate.ViewModel;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,16 +18,19 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using VM = SQLiteWPFBoilerplate.ViewModel.ViewModel;
 
-namespace SQLiteWPFBoilerplate
+namespace SQLiteWPFBoilerplate.View
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
+        DBControl dbControl = new DBControl();
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = VM.DBModel;
+            btnConnectDB.IsEnabled = false;
         }
 
         private void btnSetPath_Click(object sender, RoutedEventArgs e)
@@ -36,37 +40,81 @@ namespace SQLiteWPFBoilerplate
             openFileDlg.Multiselect = false;
             openFileDlg.Title = "Select SQLite DB File";
             openFileDlg.InitialDirectory = Environment.CurrentDirectory;
-            openFileDlg.Filter = "DB Files (*.db)";
+            openFileDlg.Filter = "DB Files (*.db) | *.db";
 
             //Run Dialog
-            openFileDlg.ShowDialog();
+            var dialogResult = openFileDlg.ShowDialog();
             var dbFileName = openFileDlg.FileName;
 
             //Save on ViewModel
-            VM.DBModel.DBPath = dbFileName;
-        }
-
-        private void btnSendQuery_Click(object sender, RoutedEventArgs e)
-        {
-            
+            if (dialogResult == true)
+            {
+                //Save on ViewModel
+                VM.DBModel.DBPath = dbFileName;
+                btnConnectDB.IsEnabled = true;
+            }
         }
 
         private void btnCreateNewDB_Click(object sender, RoutedEventArgs e)
         {
-            DBControl dbControl = new DBControl();
-
             //SaveFile Dialog
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Title = "Create New DB File";
             saveFileDialog.InitialDirectory = Environment.CurrentDirectory;
-            saveFileDialog.Filter = "DB File (*.db)";
+            saveFileDialog.Filter = "DB File (*.db) | *.db";
 
             //Run Dialog
-            saveFileDialog.ShowDialog();
+            var dialogResult = saveFileDialog.ShowDialog();
             var dbPath = saveFileDialog.FileName;
 
-            //Create new DBFile
-            dbControl.CreateDB(dbPath);
+            //Save on ViewModel
+            if (dialogResult == true)
+            {
+                //Create new DBFile
+                dbControl.CreateDB(dbPath);
+                VM.DBModel.DBPath = dbPath;
+                btnConnectDB.IsEnabled = true;
+            }
+        }
+
+        private void btnSendQuery_Click(object sender, RoutedEventArgs e)
+        {
+            DBControl dbControl = new DBControl();
+            int result = dbControl.SendQuery(tbQuery.Text, VM.DBModel.DBConnection);
+            WriteOnLog(result.ToString());
+            tbQuery.Text = string.Empty;
+        }
+
+        private void btnConnectDB_Click(object sender, RoutedEventArgs e)
+        {
+            var conn = dbControl.ConnectDB(VM.DBModel.DBPath);
+            VM.DBModel.DBConnection = conn;
+            WriteOnLog(conn.ToString());
+        }
+
+        private void WriteOnLog(string message)
+        {
+            if(tbLog.Text == string.Empty)
+            {
+                tbLog.Text += "\r----------------\n";
+            }
+            else
+            {
+                tbLog.Text += "----------------\n";
+            }
+            tbLog.Text += message;
+        }
+
+        private bool IsConnected()
+        {
+            if(VM.DBModel.DBConnection == null)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
     }
 }
