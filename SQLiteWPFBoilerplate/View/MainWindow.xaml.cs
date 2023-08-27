@@ -3,6 +3,7 @@ using SQLiteWPFBoilerplate.SQLiteControls;
 using SQLiteWPFBoilerplate.ViewModel;
 using System;
 using System.Collections.Generic;
+using System.Data.SQLite;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -31,6 +32,7 @@ namespace SQLiteWPFBoilerplate.View
             InitializeComponent();
             DataContext = VM.DBModel;
             btnConnectDB.IsEnabled = false;
+            btnSendQuery.IsEnabled = false;
         }
 
         private void btnSetPath_Click(object sender, RoutedEventArgs e)
@@ -80,16 +82,27 @@ namespace SQLiteWPFBoilerplate.View
         private void btnSendQuery_Click(object sender, RoutedEventArgs e)
         {
             DBControl dbControl = new DBControl();
-            int result = dbControl.SendQuery(tbQuery.Text, VM.DBModel.DBConnection);
-            WriteOnLog(result.ToString());
+            var result = dbControl.SendQuery($@"{tbQuery.Text}", VM.DBModel.DBConnection);
+            if (result == null)
+            {
+                WriteOnLog("Null");
+            }
+            else
+            {
+                WriteOnLog(result);
+            }
             tbQuery.Text = string.Empty;
         }
 
         private void btnConnectDB_Click(object sender, RoutedEventArgs e)
         {
             var conn = dbControl.ConnectDB(VM.DBModel.DBPath);
-            VM.DBModel.DBConnection = conn;
-            WriteOnLog(conn.ToString());
+            if(conn.State == System.Data.ConnectionState.Open)
+            {
+                WriteOnLog("Connected");
+                btnSendQuery.IsEnabled = true;
+                VM.DBModel.DBConnection = conn;
+            }
         }
 
         private void WriteOnLog(string message)
