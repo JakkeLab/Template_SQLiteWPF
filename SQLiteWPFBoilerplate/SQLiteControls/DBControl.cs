@@ -27,7 +27,7 @@ namespace SQLiteWPFBoilerplate.SQLiteControls
         public string SendQuery(string queryString, SQLiteConnection conn)
         {
             try
-            {
+            {   
                 using (SQLiteCommand command = new SQLiteCommand(queryString, conn))
                 using (SQLiteDataReader reader = command.ExecuteReader())
                 {
@@ -48,6 +48,30 @@ namespace SQLiteWPFBoilerplate.SQLiteControls
                 MessageBox.Show(ex.Message, "SQLite Error");
                 return null;
             }
+        }
+    }
+
+
+    //DML Methods (To disallow running script from form)
+    public class DML
+    {
+        public void Select(string items, string tableName)
+        {
+            
+        }
+
+        public void Insert(string item, string tableName)
+        {
+
+        }
+        public void Update(string items, string tableName)
+        {
+
+        }
+
+        public void Delete(string item, string tableName)
+        {
+
         }
     }
 }
